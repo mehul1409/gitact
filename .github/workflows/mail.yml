@@ -3,9 +3,9 @@ name: Send Email on Models Folder Change
 on:
   push:
     branches:
-      - main  # Change if you're using another branch
+      - main
     paths:
-      - 'models/**'  # Trigger only if files in models/ change
+      - 'models/**'
 
 jobs:
   send-email:
@@ -23,14 +23,24 @@ jobs:
       - name: Install nodemailer
         run: npm install nodemailer
 
-      - name: Get Latest Commit Message
-        id: get_commit
+      - name: Get Changed Files in Models Folder
+        id: files
         run: |
-          echo "commit_message=$(git log -1 --pretty=format:'%s')" >> $GITHUB_ENV
-          echo "Commit Message: $commit_message"
+          # Get list of changed files in models/ folder
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- models/)
+          echo "changed_files<<EOF" >> $GITHUB_ENV
+          echo "$CHANGED_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          # Get list of newly added files in models/ folder
+          NEW_FILES=$(git diff --name-only --diff-filter=A ${{ github.event.before }} ${{ github.sha }} -- models/)
+          echo "new_files<<EOF" >> $GITHUB_ENV
+          echo "$NEW_FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Send Email
-        run: node sendMail.js "${{ env.commit_message }}"
+        run: |
+          node sendMail.js "${{ env.changed_files }}" "${{ env.new_files }}"
         env:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
