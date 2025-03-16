@@ -15,7 +15,7 @@ jobs:
       - name: Checkout Repo with History
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2  # Fetch previous commit to compare changes
+          fetch-depth: 2  # Fetch previous commit for diff
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -25,23 +25,29 @@ jobs:
       - name: Install Dependencies
         run: npm install nodemailer
 
-      - name: Get Changed and New Files in Models Folder
+      - name: Get Changed/New Files and Diff
         id: files
         run: |
-          # Get changed files in models folder
+          # Changed files
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- models/)
           echo "changed_files<<EOF" >> $GITHUB_ENV
           echo "$CHANGED_FILES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-          # Get newly added files in models folder
+          # New files
           NEW_FILES=$(git diff --name-only --diff-filter=A HEAD^ HEAD -- models/)
           echo "new_files<<EOF" >> $GITHUB_ENV
           echo "$NEW_FILES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Send Email with Change Details
-        run: node sendMail.js "${{ env.changed_files }}" "${{ env.new_files }}"
+          # Full diff of models folder
+          DIFF=$(git diff HEAD^ HEAD -- models/)
+          echo "diff_output<<EOF" >> $GITHUB_ENV
+          echo "$DIFF" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Send Email with Changes
+        run: node sendMail.js "${{ env.changed_files }}" "${{ env.new_files }}" "${{ env.diff_output }}"
         env:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
