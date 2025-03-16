@@ -5,42 +5,43 @@ on:
     branches:
       - main
     paths:
-      - 'models/**'
+      - 'models/**'  # Trigger only on changes in models folder
 
 jobs:
   send-email:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Checkout Repo with History
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # Fetch previous commit to compare changes
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      - name: Install nodemailer
+      - name: Install Dependencies
         run: npm install nodemailer
 
-      - name: Get Changed Files in Models Folder
+      - name: Get Changed and New Files in Models Folder
         id: files
         run: |
-          # Get list of changed files in models/ folder
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- models/)
+          # Get changed files in models folder
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- models/)
           echo "changed_files<<EOF" >> $GITHUB_ENV
           echo "$CHANGED_FILES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-          # Get list of newly added files in models/ folder
-          NEW_FILES=$(git diff --name-only --diff-filter=A ${{ github.event.before }} ${{ github.sha }} -- models/)
+          # Get newly added files in models folder
+          NEW_FILES=$(git diff --name-only --diff-filter=A HEAD^ HEAD -- models/)
           echo "new_files<<EOF" >> $GITHUB_ENV
           echo "$NEW_FILES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Send Email
-        run: |
-          node sendMail.js "${{ env.changed_files }}" "${{ env.new_files }}"
+      - name: Send Email with Change Details
+        run: node sendMail.js "${{ env.changed_files }}" "${{ env.new_files }}"
         env:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
