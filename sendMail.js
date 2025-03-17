@@ -5,14 +5,16 @@ const changedFiles = process.argv[2]?.trim() || "No files changed.";
 const newFiles = process.argv[3]?.trim() || "No new files added.";
 const diffOutput = process.argv[4]?.trim() || "No diff available.";
 
+
+
 const sendMail = async () => {
     console.log("📤 Sending email...");
 
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
+            user: "mehulbansalswm1234@gmail.com",
+            pass: "qwlr zrds vlpv mmfe",
         },
     });
 
