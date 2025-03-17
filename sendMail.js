@@ -20,7 +20,7 @@ const sendMail = async () => {
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
-        to: "teeshakakkar2004@gmail.com",  // Replace with your email
+        to: "mehulbansalswm1234@gmail.com", 
         subject: "📂 Models Folder Update - Detailed Changes",
         text: `
 🚨 Changes in models folder:
