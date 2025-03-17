@@ -1,2 +1,0 @@
-//student.js
-//hello student
